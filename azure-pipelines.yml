@@ -31,3 +31,7 @@ steps:
     command: buildAndPush
     repository: spring-frontend
     tags: latest
+- task: oc-cmd@2
+  inputs:
+    openshiftService: 'ocpmin'
+    cmd: 'oc whoami'
