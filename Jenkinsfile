@@ -27,6 +27,24 @@ try {
             unstash name:"jar"
             sh "oc start-build ${appName}-build --from-file=target/app.jar -n ${project}"
         }
+        stage("Deploy DEV") {
+            openshift.withCluster() {
+                openshift.withProject('cicd') {
+                    openshift.tag("${appName}:latest", "${appName}:dev")
+                    def dc = openshift.selector('dc', "${appName}")
+                    dc.rollout().status()
+                }
+            }
+        }
+        stage("Deploy QA") {
+            openshift.withCluster() {
+                openshift.withProject('cicd') {
+                    openshift.tag("${appName}:latest", "${appName}:qa")
+                    def dc = openshift.selector('dc', "${appName}")
+                    dc.rollout().status()
+                }
+            }
+        }
     }
 } catch (err) {
     echo "in catch block"
