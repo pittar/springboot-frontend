@@ -3,7 +3,7 @@ try {
     def gitSourceUrl=env.GIT_SOURCE_URL
     def gitSourceRef=env.GIT_SOURCE_REF
     def project=""
-    node {
+    node("maven") {
         stage("Initialize") {
             project = env.PROJECT_NAME
             echo "appName: ${appName}"
@@ -11,8 +11,6 @@ try {
             echo "gitSourceUrl: ${gitSourceUrl}"
             echo "gitSourceRef: ${gitSourceRef}"
         }
-    }
-    node("maven") {
         stage("Checkout") {
             git url: "${gitSourceUrl}", branch: "${gitSourceRef}"
         }
@@ -20,36 +18,56 @@ try {
             sh "mvn clean package"
             stash name:"jar", includes:"target/app.jar"
         }
-    }
-    node {
         stage("Build Image") {
             unstash name:"jar"
             sh "oc start-build ${appName}-build --from-file=target/app.jar -n ${project} --follow"
         }
-        stage("Deploy DEV") {
+        stage("Tag DEV") {
             openshift.withCluster() {
                 openshift.withProject('cicd') {
                     openshift.tag("${appName}:latest", "${appName}:dev")
                 }
             }
+        }
+        stage("Deploy DEV") {
             openshift.withCluster() {
                 openshift.withProject('app-dev') {
-                    def dc = openshift.selector('dc', "${appName}")
-                    dc.rollout().status()
+                    def deploymentsExists = openshift.selector( "dc", "${appName}").exists()
+                    if (!deploymentsExists) {
+                            echo "Deployments do not yet exist.  Create the environment."
+                            def models = openshift.process( "cicd//demo-app-frontend-template", "-p", "IMAGE_TAG=dev" )
+                            def created = openshift.create( models )
+                            echo "Created: ${models.names()}"
+                    } else {
+                        echo "Deploying to DEV."
+                        def dc = openshift.selector('dc', "${appName}")
+                        dc.rollout().status()
+                    }
+                }            
+            }
+        }
+        stage("Tag for QA") {
+            openshift.withCluster() {
+                openshift.withProject('cicd') {
+                    openshift.tag("${appName}:dev", "${appName}:qa")
                 }
             }
         }
         stage("Deploy QA") {
             openshift.withCluster() {
-                openshift.withProject('cicd') {
-                    openshift.tag("${appName}:latest", "${appName}:qa")
-                }
-            }
-            openshift.withCluster() {
                 openshift.withProject('app-qa') {
-                    def dc = openshift.selector('dc', "${appName}")
-                    dc.rollout().status()
-                }
+                    def deploymentsExists = openshift.selector( "dc", "${appName}").exists()
+                    if (!deploymentsExists) {
+                            echo "Deployments do not yet exist.  Create the environment."
+                            def models = openshift.process( "cicd//demo-app-frontend-template", "-p", "IMAGE_TAG=qa" )
+                            def created = openshift.create( models )
+                            echo "Created: ${models.names()}"
+                    } else {
+                        echo "Deploying to QA."
+                        def dc = openshift.selector('dc', "${appName}")
+                        dc.rollout().status()
+                    }
+                }            
             }
         }
     }
