@@ -24,16 +24,7 @@ try {
     node {
         stage("Build Image") {
             unstash name:"jar"
-            openshift.withCluster() {
-                openshift.withProject('cicd') {
-                    def builds = openshift.selector("bc", "${appName}-build").related('builds')
-                    timeout(5) { 
-                        builds.untilEach(1) {
-                            return (it.object().status.phase == "Complete")
-                        }
-                    }
-                }
-            }
+            sh "oc start-build ${appName}-build --from-file=target/app.jar -n ${project} --follow"
         }
         stage("Deploy DEV") {
             openshift.withCluster() {
