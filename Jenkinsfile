@@ -30,6 +30,10 @@ try {
             openshift.withCluster() {
                 openshift.withProject('cicd') {
                     openshift.tag("${appName}:latest", "${appName}:dev")
+                }
+            }
+            openshift.withCluster() {
+                openshift.withProject('app-dev') {
                     def dc = openshift.selector('dc', "${appName}")
                     dc.rollout().status()
                 }
@@ -39,6 +43,10 @@ try {
             openshift.withCluster() {
                 openshift.withProject('cicd') {
                     openshift.tag("${appName}:latest", "${appName}:qa")
+                }
+            }
+            openshift.withCluster() {
+                openshift.withProject('app-qa') {
                     def dc = openshift.selector('dc', "${appName}")
                     dc.rollout().status()
                 }
