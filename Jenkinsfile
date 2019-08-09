@@ -12,13 +12,16 @@ try {
             echo "gitSourceRef: ${gitSourceRef}"
         }
         stage("Checkout") {
+            echo "Checkout source."
             git url: "${gitSourceUrl}", branch: "${gitSourceRef}"
         }
         stage("Build JAR") {
+            echo "Build the app."
             sh "mvn clean package"
             stash name:"jar", includes:"target/app.jar"
         }
         stage("Build Image") {
+            echo "Build container image."
             unstash name:"jar"
             openshift.withCluster() {
                 openshift.withProject('cicd') {
@@ -27,6 +30,7 @@ try {
             }
         }
         stage("Tag DEV") {
+            echo "Tag image to DEV"
             openshift.withCluster() {
                 openshift.withProject('cicd') {
                     openshift.tag("${appName}:latest", "${appName}:dev")
@@ -34,6 +38,7 @@ try {
             }
         }
         stage("Deploy DEV") {
+            echo "Deploy to DEV."
             openshift.withCluster() {
                 openshift.withProject('app-dev') {
                     def deploymentsExists = openshift.selector( "dc", "${appName}").exists()
@@ -51,6 +56,7 @@ try {
             }
         }
         stage("Tag for QA") {
+            echo "Tag to UAT"
             openshift.withCluster() {
                 openshift.withProject('cicd') {
                     openshift.tag("${appName}:dev", "${appName}:qa")
@@ -58,6 +64,7 @@ try {
             }
         }
         stage("Deploy QA") {
+            echo "Deploy to QA"
             openshift.withCluster() {
                 openshift.withProject('app-qa') {
                     def deploymentsExists = openshift.selector( "dc", "${appName}").exists()
