@@ -20,7 +20,11 @@ try {
         }
         stage("Build Image") {
             unstash name:"jar"
-            sh "oc start-build ${appName}-build --from-file=target/app.jar -n ${project} --follow"
+            openshift.withCluster() {
+                openshift.withProject('cicd') {
+                    sh "oc start-build ${appName}-build --from-file=target/app.jar -n cicd --follow"
+                }
+            }
         }
         stage("Tag DEV") {
             openshift.withCluster() {
