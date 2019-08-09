@@ -47,12 +47,11 @@ try {
                             echo "Deployments do not yet exist.  Create the environment."
                             def models = openshift.process( "cicd//demo-app-frontend-template", "-p", "IMAGE_TAG=dev" )
                             def created = openshift.create( models )
-                    } else {
-                        echo "Deploying to DEV."
-                        def dc = openshift.selector('dc', "${appName}")
-                        dc.rollout().latest()
-                        dc.rollout().status()
                     }
+                    echo "Rollout to DEV."
+                    def dc = openshift.selector('dc', "${appName}")
+                    dc.rollout().latest()
+                    dc.rollout().status()
                 }            
             }
         }
@@ -73,12 +72,11 @@ try {
                             echo "Deployments do not yet exist.  Create the environment."
                             def models = openshift.process( "cicd//demo-app-frontend-template", "-p", "IMAGE_TAG=qa" )
                             def created = openshift.create( models )
-                    } else {
-                        echo "Deploying to QA."
-                        def dc = openshift.selector('dc', "${appName}")
-                        dc.rollout().latest()
-                        dc.rollout().status()
                     }
+                    echo "Rollout to QA."
+                    def dc = openshift.selector('dc', "${appName}")
+                    dc.rollout().latest()
+                    dc.rollout().status()
                 }            
             }
         }
