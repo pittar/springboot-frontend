@@ -11,6 +11,24 @@ try {
             echo "gitSourceUrl: ${gitSourceUrl}"
             echo "gitSourceRef: ${gitSourceRef}"
         }
+        stage("Checkout") {
+            git url: "${gitSourceUrl}", branch: "${gitSourceRef}"
+        }
+        stage("Build JAR") {
+            sh "mvn clean package"
+            stash name:"jar", includes:"target/app.jar"
+        }
+        stage("Build Image") {
+            unstash name:"jar"
+            sh "oc start-build ${appName}-build --from-file=target/app.jar -n ${project} --follow"
+        }
+        stage("Tag DEV") {
+            openshift.withCluster() {
+                openshift.withProject('cicd') {
+                    openshift.tag("${appName}:latest", "${appName}:dev")
+                }
+            }
+        }
         stage("Deploy DEV") {
             openshift.withCluster() {
                 openshift.withProject('app-dev') {
