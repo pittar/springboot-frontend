@@ -50,7 +50,7 @@ try {
                     } else {
                         echo "Deploying to DEV."
                         def dc = openshift.selector('dc', "${appName}")
-                        dc.rollout().status()
+                        dc.rollout().latest().status()
                     }
                 }            
             }
@@ -75,7 +75,7 @@ try {
                     } else {
                         echo "Deploying to QA."
                         def dc = openshift.selector('dc', "${appName}")
-                        dc.rollout().status()
+                        dc.rollout().latest().status()
                     }
                 }            
             }
