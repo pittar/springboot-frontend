@@ -3,6 +3,7 @@ try {
     def gitSourceUrl=env.GIT_SOURCE_URL
     def gitSourceRef=env.GIT_SOURCE_REF
     def project=""
+    def projectVersion=""
     node("maven") {
         stage("Initialize") {
             project = env.PROJECT_NAME
@@ -14,6 +15,9 @@ try {
         stage("Checkout") {
             echo "Checkout source."
             git url: "${gitSourceUrl}", branch: "${gitSourceRef}"
+            echo "Read POM info."
+            pom = readMavenPom file: 'pom.xml'
+            projectVersion = pom.version
         }
         stage("Build JAR") {
             echo "Build the app."
