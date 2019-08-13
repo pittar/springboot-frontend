@@ -1,5 +1,7 @@
 package integration;
 
+import static org.junit.Assert.assertEquals;
+
 import java.net.MalformedURLException;
 
 import org.junit.After;
@@ -27,7 +29,7 @@ public class GoogleIT {
 	@Test
 	public void googleTitleIT() {
 		config.getDriver().get(url);
-		System.err.println("Title: " + getTitle());
+		assertEquals("Title not as expected: ", "Incredible Random Number Generator", getTitle());
 	}
 
 }
