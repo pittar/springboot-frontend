@@ -42,6 +42,10 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+		    <groupId>org.seleniumhq.selenium</groupId>
+		    <artifactId>selenium-java</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -52,11 +56,49 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
+			    <artifactId>maven-surefire-plugin</artifactId>
+			    <configuration>
+			      <excludes>
+			        <exclude>**/integration/*</exclude>
+			      </excludes>
+			    </configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.cyclonedx</groupId>
 				<artifactId>cyclonedx-maven-plugin</artifactId>
 				<version>1.3.1</version>
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+		    <id>failsafe</id>
+		    <build>
+		        <plugins>
+		            <plugin>
+		                <artifactId>maven-failsafe-plugin</artifactId>
+		                <version>2.22.0</version>
+					    <configuration>
+					        <includes>
+					            <include>**/integration/*</include>
+					        </includes>
+					        <excludes>
+					          	<exclude>**/test/*</exclude>
+					        </excludes>
+					    </configuration>
+		                <executions>
+		                    <execution>
+		                        <goals>
+		                            <goal>integration-test</goal>
+		                            <goal>verify</goal>
+		                        </goals>
+		                    </execution>
+		                </executions>
+		            </plugin>
+		        </plugins>
+		    </build>
+		</profile>
+	</profiles>
 
 </project>
