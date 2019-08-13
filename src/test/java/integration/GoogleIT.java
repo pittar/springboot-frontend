@@ -8,7 +8,7 @@ import org.junit.Test;
 public class GoogleIT {
 
 	private SeleniumConfig config;
-	private String url = "http://www.google.ca/";
+	private String url = "http://frontend-app-dev.apps-bfc1.generic.opentlc.com";
 
 	public GoogleIT() throws MalformedURLException {
 		config = new SeleniumConfig();
@@ -27,7 +27,7 @@ public class GoogleIT {
 	@Test
 	public void googleTitleIT() {
 		config.getDriver().get(url);
-		System.err.println("Google title: " + getTitle());
+		System.err.println("Title: " + getTitle());
 	}
 
 }
