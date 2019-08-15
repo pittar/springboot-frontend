@@ -13,7 +13,7 @@ import org.openqa.selenium.WebDriver;
 public class MainPageIT {
 
 	private SeleniumConfig config;
-	private String url = "http://frontend.app-dev.svc:8080";
+	private String url = "http://frontend-app-dev.apps-bfc1.generic.opentlc.com";
 
 	public MainPageIT() throws MalformedURLException {
 		config = new SeleniumConfig();
