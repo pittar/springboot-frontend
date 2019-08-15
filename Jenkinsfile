@@ -21,11 +21,11 @@ try {
         }
         stage("Build JAR") {
             echo "Build the app."
-   			sh "mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=false"
-            sh "mvn clean package"
+            sh "mvn clean package -DskipTests"
             //stash name:"jar", includes:"target/app.jar"
         }
         stage("Quality Check") {
+   			sh "mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=false"
             sh "mvn sonar:sonar -Dsonar.jacoco.reportPaths=target/coverage-reports/jacoco-unit.exec -Dsonar.host.url=http://sonarqube.cicd.svc:9000"
             sh "mvn org.cyclonedx:cyclonedx-maven-plugin:makeBom"
             dependencyTrackPublisher(artifact: 'target/bom.xml', artifactType: 'bom', projectName: "${appName}", projectVersion: "${projectVersion}", synchronous: false)
