@@ -10,12 +10,12 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-public class GoogleIT {
+public class MainPageIT {
 
 	private SeleniumConfig config;
-	private String url = "http://frontend-app-dev.apps-bfc1.generic.opentlc.com";
+	private String url = "http://frontend.app-dev.svc:8080";
 
-	public GoogleIT() throws MalformedURLException {
+	public MainPageIT() throws MalformedURLException {
 		config = new SeleniumConfig();
 	}
 
