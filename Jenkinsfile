@@ -66,7 +66,7 @@ try {
         }
         stage("Integration Tests") {
         	echo "Running Integration tests..."
-            // sh "mvn verify -Pfailsafe"
+            sh "mvn verify -Pfailsafe"
         }
         stage("Tag for QA") {
             echo "Tag to UAT"
