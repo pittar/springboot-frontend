@@ -5,31 +5,32 @@ try {
     def project=""
     def projectVersion=""
 
-    // Create new project for the feature branch if it does not exist
-    String projectQuery = sh (
-        script: 'oc get projects',
-        returnStdout: true
-    ).trim()
+    node("maven") {
 
-    newProject(projectName) {
-        if (!projectQuery.contains(projectName)) {
-            stage ('Creating Project') {
-                // To grant the jenkins serviceaccount self provisioner cluster role run:
-                //$ oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:cicd:jenkins -n cicd
-                print "Creating project ${projectName}"
-                sh """
-                    oc new-project ${projectName}
-                """
+        // Create new project for the feature branch if it does not exist
+        String projectQuery = sh (
+            script: 'oc get projects',
+            returnStdout: true
+        ).trim()
 
-                print "Updating service account permissions"
-                sh """
-                    oc policy add-role-to-group edit system:serviceaccount:${projectName}:default -n ${projectName}
-                """
+        newProject(projectName) {
+            if (!projectQuery.contains(projectName)) {
+                stage ('Creating Project') {
+                    // To grant the jenkins serviceaccount self provisioner cluster role run:
+                    //$ oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:cicd:jenkins -n cicd
+                    print "Creating project ${projectName}"
+                    sh """
+                        oc new-project ${projectName}
+                    """
+
+                    print "Updating service account permissions"
+                    sh """
+                        oc policy add-role-to-group edit system:serviceaccount:${projectName}:default -n ${projectName}
+                    """
+                }
             }
         }
-    }
 
-    node("maven") {
         stage("Initialize") {
             project = env.PROJECT_NAME
             echo "appName: ${appName}"
