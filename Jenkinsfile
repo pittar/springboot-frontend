@@ -13,25 +13,6 @@ try {
             returnStdout: true
         ).trim()
 
-        def newProject(appName) {
-            if (!projectQuery.contains(appName)) {
-                stage ('Creating Project') {
-                    echo "Create a Project!"
-                    // To grant the jenkins serviceaccount self provisioner cluster role run:
-                    //$ oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:cicd:jenkins -n cicd
-                    print "Creating project ${appName}-uat"
-                    sh """
-                        oc new-project ${appName}-uat
-                    """
-
-                    print "Updating service account permissions"
-                    sh """
-                        oc policy add-role-to-group edit system:serviceaccount:${appName}-uat:default -n ${appName}-uat
-                    """
-                }
-            }
-        }
-
         stage("Initialize") {
             project = env.PROJECT_NAME
             echo "appName: ${appName}"
@@ -39,6 +20,22 @@ try {
             echo "gitSourceUrl: ${gitSourceUrl}"
             echo "gitSourceRef: ${gitSourceRef}"
             echo "Create projects..."
+            openshift.withProject() {
+                if (!projectQuery.contains(appName)) {
+                    stage ('Creating Project') {
+                        echo "Create a Project!"
+                        // To grant the jenkins serviceaccount self provisioner cluster role run:
+                        //$ oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:cicd:jenkins -n cicd
+                        print "Creating project ${appName}-uat"
+                        sh "oc new-project ${appName}-uat"
+                        sh "oc new-project ${appName}-test"
+
+                        print "Updating service account permissions"
+                        sh "oc policy add-role-to-group edit system:serviceaccount:${appName}-uat:default -n ${appName}-uat"
+                        sh "oc policy add-role-to-group edit system:serviceaccount:${appName}-test:default -n ${appName}-test"
+                    }
+                }
+            }
             newProject("${appName}-uat")
             newProject("${appName}-test")
         }
