@@ -36,8 +36,6 @@ try {
                     }
                 }
             }
-            newProject("${appName}-uat")
-            newProject("${appName}-test")
         }
         stage("Checkout") {
             echo "Checkout source."
