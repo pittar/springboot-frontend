@@ -7,13 +7,11 @@ try {
 
     // Create new project for the feature branch if it does not exist
     String projectQuery = sh (
-        script:"""
-            oc get projects
-        """,
+        script: 'oc get projects',
         returnStdout: true
-    )
+    ).trim()
 
-    newProject(projectName)
+    newProject(projectName) {
         if (!projectQuery.contains(projectName)) {
             stage ('Creating Project') {
                 // To grant the jenkins serviceaccount self provisioner cluster role run:
@@ -29,6 +27,7 @@ try {
                 """
             }
         }
+    }
 
     node("maven") {
         stage("Initialize") {
