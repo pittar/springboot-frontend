@@ -3,6 +3,7 @@ try {
     def gitSourceUrl=env.GIT_SOURCE_URL
     def gitSourceRef=env.GIT_SOURCE_REF
     def project=""
+    def projectVersion=""
     node("maven") {
         stage("Initialize") {
             project = env.PROJECT_NAME
@@ -12,17 +13,34 @@ try {
             echo "gitSourceRef: ${gitSourceRef}"
         }
         stage("Checkout") {
+            echo "Checkout source."
             git url: "${gitSourceUrl}", branch: "${gitSourceRef}"
+            echo "Read POM info."
+            pom = readMavenPom file: 'pom.xml'
+            projectVersion = pom.version
         }
         stage("Build JAR") {
-            sh "mvn clean package"
-            stash name:"jar", includes:"target/app.jar"
+            echo "Build the app."
+            sh "mvn clean package -DskipTests"
+            //stash name:"jar", includes:"target/app.jar"
+        }
+        stage("Quality Check") {
+   			sh "mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=false"
+            sh "mvn sonar:sonar -Dsonar.jacoco.reportPaths=target/coverage-reports/jacoco-unit.exec -Dsonar.host.url=http://sonarqube.cicd.svc:9000"
+            sh "mvn org.cyclonedx:cyclonedx-maven-plugin:makeBom"
+            dependencyTrackPublisher(artifact: 'target/bom.xml', artifactType: 'bom', projectName: "${appName}", projectVersion: "${projectVersion}", synchronous: false)
         }
         stage("Build Image") {
-            unstash name:"jar"
-            sh "oc start-build ${appName}-build --from-file=target/app.jar -n ${project} --follow"
+            echo "Build container image."
+            //unstash name:"jar"
+            openshift.withCluster() {
+                openshift.withProject('cicd') {
+                    sh "oc start-build ${appName}-build --from-file=target/app.jar -n cicd --follow"
+                }
+            }
         }
         stage("Tag DEV") {
+            echo "Tag image to DEV"
             openshift.withCluster() {
                 openshift.withProject('cicd') {
                     openshift.tag("${appName}:latest", "${appName}:dev")
@@ -30,23 +48,28 @@ try {
             }
         }
         stage("Deploy DEV") {
+            echo "Deploy to DEV."
             openshift.withCluster() {
                 openshift.withProject('app-dev') {
                     def deploymentsExists = openshift.selector( "dc", "${appName}").exists()
                     if (!deploymentsExists) {
                             echo "Deployments do not yet exist.  Create the environment."
-                            def models = openshift.process( "cicd//demo-app-frontend-template", "-p", "IMAGE_TAG=dev" )
+                            def models = openshift.process( "cicd//demo-app-${appName}-template", "-p", "IMAGE_TAG=dev" )
                             def created = openshift.create( models )
-                            echo "Created: ${models.names()}"
-                    } else {
-                        echo "Deploying to DEV."
-                        def dc = openshift.selector('dc', "${appName}")
-                        dc.rollout().status()
                     }
+                    echo "Rollout to DEV."
+                    def dc = openshift.selector('dc', "${appName}")
+                    dc.rollout().latest()
+                    dc.rollout().status()
                 }            
             }
         }
+        stage("Integration Tests") {
+        	echo "Running Integration tests..."
+            // sh "mvn verify -Pfailsafe"
+        }
         stage("Tag for QA") {
+            echo "Tag to UAT"
             openshift.withCluster() {
                 openshift.withProject('cicd') {
                     openshift.tag("${appName}:dev", "${appName}:qa")
@@ -54,19 +77,19 @@ try {
             }
         }
         stage("Deploy QA") {
+            echo "Deploy to QA"
             openshift.withCluster() {
                 openshift.withProject('app-qa') {
                     def deploymentsExists = openshift.selector( "dc", "${appName}").exists()
                     if (!deploymentsExists) {
                             echo "Deployments do not yet exist.  Create the environment."
-                            def models = openshift.process( "cicd//demo-app-frontend-template", "-p", "IMAGE_TAG=qa" )
+                            def models = openshift.process( "cicd//demo-app-${appName}-template", "-p", "IMAGE_TAG=qa" )
                             def created = openshift.create( models )
-                            echo "Created: ${models.names()}"
-                    } else {
-                        echo "Deploying to QA."
-                        def dc = openshift.selector('dc', "${appName}")
-                        dc.rollout().status()
                     }
+                    echo "Rollout to QA."
+                    def dc = openshift.selector('dc', "${appName}")
+                    dc.rollout().latest()
+                    dc.rollout().status()
                 }            
             }
         }

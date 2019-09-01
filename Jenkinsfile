@@ -4,6 +4,32 @@ try {
     def gitSourceRef=env.GIT_SOURCE_REF
     def project=""
     def projectVersion=""
+
+    // Create new project for the feature branch if it does not exist
+    String projectQuery = sh (
+        script:"""
+            oc get projects
+        """,
+        returnStdout: true
+    )
+
+    newProject(projectName)
+        if (!projectQuery.contains(projectName)) {
+            stage ('Creating Project') {
+                // To grant the jenkins serviceaccount self provisioner cluster role run:
+                //$ oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:cicd:jenkins -n cicd
+                print "Creating project ${projectName}"
+                sh """
+                    oc new-project ${projectName}
+                """
+
+                print "Updating service account permissions"
+                sh """
+                    oc policy add-role-to-group edit system:serviceaccount:${projectName}:default -n ${projectName}
+                """
+            }
+        }
+
     node("maven") {
         stage("Initialize") {
             project = env.PROJECT_NAME
@@ -11,6 +37,9 @@ try {
             echo "gitSourceUrl: ${gitSourceUrl}"
             echo "gitSourceUrl: ${gitSourceUrl}"
             echo "gitSourceRef: ${gitSourceRef}"
+            echo "Create projects..."
+            newProject("${appName}-uat")
+            newProject("${appName}-test")
         }
         stage("Checkout") {
             echo "Checkout source."
