@@ -13,19 +13,20 @@ try {
             returnStdout: true
         ).trim()
 
-        newProject(projectName) {
-            if (!projectQuery.contains(projectName)) {
+        newProject(appName) {
+            if (!projectQuery.contains(appName)) {
                 stage ('Creating Project') {
+                    echo "Create a Project!"
                     // To grant the jenkins serviceaccount self provisioner cluster role run:
                     //$ oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:cicd:jenkins -n cicd
-                    print "Creating project ${projectName}"
+                    print "Creating project ${appName}-uat"
                     sh """
-                        oc new-project ${projectName}
+                        oc new-project ${appName}-uat
                     """
 
                     print "Updating service account permissions"
                     sh """
-                        oc policy add-role-to-group edit system:serviceaccount:${projectName}:default -n ${projectName}
+                        oc policy add-role-to-group edit system:serviceaccount:${appName}-uat:default -n ${appName}-uat
                     """
                 }
             }
