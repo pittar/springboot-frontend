@@ -13,7 +13,7 @@ try {
             returnStdout: true
         ).trim()
 
-        newProject(appName) {
+        def newProject(appName) {
             if (!projectQuery.contains(appName)) {
                 stage ('Creating Project') {
                     echo "Create a Project!"
