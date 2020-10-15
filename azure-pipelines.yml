@@ -32,8 +32,11 @@ steps:
       pwd
       ls -la
       echo "Target dir contents:"
-      echo "Staging dir: $(Build.ArtifactStagingDirectory)"
-      ls -la "$(Build.ArtifactStagingDirectory)"
+      echo "Artifact Staging dir: $(Build.ArtifactStagingDirectory)"
+      echo "Local dir: $(Build.Repository.LocalPath)"
+      echo "Staging dir: $(Build.StagingDirectory)"
+      echo "Pipeline dir: $(Pipeline.Workspace)"
+      ls -la "$(Build.Repository.LocalPath)"
 #- task: oc-cmd@2
 #  inputs:
 #    openshiftService: 'opentlc-mgr'
