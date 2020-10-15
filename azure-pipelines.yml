@@ -33,13 +33,7 @@ steps:
       ls -la
       echo "Target dir contents:"
       ls -la target
-#- task: Docker@2
-#  displayName: Build and Push
-#  inputs:
-#    command: buildAndPush
-#    repository: spring-frontend
-#    tags: latest
-#- task: oc-cmd@2
-#  inputs:
-#    openshiftService: 'opentlc-mgr'
-#    cmd: 'oc whoami'
+- task: oc-cmd@2
+  inputs:
+    openshiftService: 'opentlc-mgr'
+    cmd: 'oc start-build petclinic-s2i-build --from-file=target/app.jar -n cicd --follow'
