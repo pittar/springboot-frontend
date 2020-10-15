@@ -32,8 +32,8 @@ steps:
       pwd
       ls -la
       echo "Target dir contents:"
-      ls -la target
-- task: oc-cmd@2
-  inputs:
-    openshiftService: 'opentlc-mgr'
-    cmd: 'oc start-build petclinic-s2i-build --from-file=target/app.jar -n cicd --follow'
+      ls -la "$(Build.ArtifactStagingDirectory)""
+#- task: oc-cmd@2
+#  inputs:
+#    openshiftService: 'opentlc-mgr'
+#    cmd: 'oc start-build petclinic-s2i-build --from-file=target/app.jar -n cicd --follow'
