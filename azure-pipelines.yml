@@ -33,5 +33,5 @@ steps:
     tags: latest
 - task: oc-cmd@2
   inputs:
-    openshiftService: 'ocpmin'
+    openshiftService: 'opentlc-mgr'
     cmd: 'oc whoami'
