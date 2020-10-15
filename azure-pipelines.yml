@@ -32,7 +32,7 @@ steps:
       pwd
       ls -la
       echo "Target dir contents:"
-      ls -la "$(Build.ArtifactStagingDirectory)""
+      ls -la "$(Build.ArtifactStagingDirectory)"
 #- task: oc-cmd@2
 #  inputs:
 #    openshiftService: 'opentlc-mgr'
